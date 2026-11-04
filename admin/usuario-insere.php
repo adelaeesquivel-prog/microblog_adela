@@ -1,5 +1,42 @@
 <?php
 
+use Microblog\Enums\TipoUsuario;
+use Microblog\Helpers\Utils;
+use Microblog\Helpers\Validacoes;
+use Microblog\Models\Usuario;
+
+require_once __DIR__.'/..vendor/autoload.php';
+
+//inicializa  variaveis para armazenar mensagens de erro e valores de formulario
+$mensagemErro ="";
+$nome = "";
+$email = "";
+$tipo = "editor";  //valor padrao conforme formulario
+
+if($_SERVER['REQUEST_METHOD'] === "POST"){
+    /*  Normaliza as entradas de dados de formulario para minimizar problemas de segurança e inconsistencia.*/
+    $nome = Utils::normalizarEntrada($_POST["nome"]?? "");
+    $email = Utils::normalizarEntrada($_POST['email']?? "", 'email');
+    $senhaBruta = $_POST['senha'];
+    $tipo = Utils::normalizarEntrada($_POST['tipo'] ??"");
+
+    /*Aplicar  validaçoes ao campo de formulario*/
+    Validacoes::validarNome($nome);
+    Validacoes::validarEmail($email);
+    Validacoes::validarSenha($senhaBruta);
+    Validacoes::validarTipo($tipo);
+
+    /*Se todas as validaçoes passarem:*/  
+    //Codificar senha
+    $senha = Utils::codificarSenha($senhaBruta);
+
+    //Converter a string do tipo usuario(vindo do formulario)para o ENUM
+    $tipoEnum = TipoUsuario::from($tipo);
+
+    //Criar um objeto Usuarios com os dados normalizados e validados
+    $usuario = new Usuario ($nome,$email,$senha,$tipoEnum);
+}
+
 
 
 require_once __DIR__ . '/../includes/cabecalho-admin.php'; ?>
