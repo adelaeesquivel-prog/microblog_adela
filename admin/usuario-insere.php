@@ -4,6 +4,7 @@ use Microblog\Enums\TipoUsuario;
 use Microblog\Helpers\Utils;
 use Microblog\Helpers\Validacoes;
 use Microblog\Models\Usuario;
+use Microblog\Services\UsuarioServico;
 
 require_once __DIR__.'/..vendor/autoload.php';
 
@@ -14,6 +15,7 @@ $email = "";
 $tipo = "editor";  //valor padrao conforme formulario
 
 if($_SERVER['REQUEST_METHOD'] === "POST"){
+ try {
     /*  Normaliza as entradas de dados de formulario para minimizar problemas de segurança e inconsistencia.*/
     $nome = Utils::normalizarEntrada($_POST["nome"]?? "");
     $email = Utils::normalizarEntrada($_POST['email']?? "", 'email');
@@ -35,6 +37,28 @@ if($_SERVER['REQUEST_METHOD'] === "POST"){
 
     //Criar um objeto Usuarios com os dados normalizados e validados
     $usuario = new Usuario ($nome,$email,$senha,$tipoEnum);
+
+    //Criar um serviço para usuario
+    $usuarioServiço = new UsuarioServico();
+
+    //Inserir usuario atraves de serviço
+    $usuarioServico->inserir($usuario);
+
+    //Redirecionar para a pagina usuarios.php
+    header("location:usuarios.php");
+    exit;
+ } catch (InvalidArgumentException $e) {
+    //Primeiro catch :para erros de validação
+    //Exemplos:nome invalido, email invalido, senha inadequada etc.
+    $mensagemErro = $e->getMessage();
+ }catch (Throwable $e){
+    //segundo  catch: para exceçoes  e erros inesperados.
+    //registramos no log
+    Utils::registrarLog($e);
+
+    //definimos uma mensagem generica ao usuario
+    $mensagemErro = "Não foi possivel cadastrar o usuario . Tente novamente.";
+ }
 }
 
 
