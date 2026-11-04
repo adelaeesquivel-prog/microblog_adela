@@ -1,4 +1,37 @@
-<?php require_once __DIR__ . '/../includes/cabecalho-admin.php'; ?>
+<?php
+
+use Microblog\Helpers\Utils;
+use Microblog\Services\UsuarioServico;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+// Inicializar variáveis para mensagem de erro e dados do usuário
+$mensagemErro = "";
+$dadosUsuario = null;
+$usuarioServico = null;
+
+//Normaliza o valor do id recebido via parametro de URL
+$id = Utils::normalizarEntrada($_GET['id'] ?? null, 'inteiro');
+
+//Verificção do valor do id(se for invalido vai redireccionar para index)
+Utils::verificarId($id);
+
+try{
+    $usuarioServico = new UsuarioServico();
+    $dadosUsuario =$usuarioServico->buscarPorId($id);
+}catch(Throwable $e){
+    Utils::registrarLog($e);
+    $mensagemErro = "Não foi possivel carregar  os dados do usuário";
+}
+
+//Utils::dump($dadosUsuario);
+//se a consulta retornar null e não tiver, apresentamos uma mensagem avisando  que nada foi encontrado
+if($dadosUsuario === null && $mensagemErro ===""){
+    Utils::alertaErro("Usuário não encontrado!");
+}
+
+
+
+require_once __DIR__ . '/../includes/cabecalho-admin.php'; ?>
 
 <div class="row">
     <article class="col-12 bg-white rounded shadow my-1 py-4">
