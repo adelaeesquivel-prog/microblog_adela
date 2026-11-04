@@ -6,59 +6,59 @@ use Microblog\Helpers\Validacoes;
 use Microblog\Models\Usuario;
 use Microblog\Services\UsuarioServico;
 
-require_once __DIR__.'/..vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 //inicializa  variaveis para armazenar mensagens de erro e valores de formulario
-$mensagemErro ="";
+$mensagemErro = "";
 $nome = "";
 $email = "";
 $tipo = "editor";  //valor padrao conforme formulario
 
-if($_SERVER['REQUEST_METHOD'] === "POST"){
- try {
-    /*  Normaliza as entradas de dados de formulario para minimizar problemas de segurança e inconsistencia.*/
-    $nome = Utils::normalizarEntrada($_POST["nome"]?? "");
-    $email = Utils::normalizarEntrada($_POST['email']?? "", 'email');
-    $senhaBruta = $_POST['senha'];
-    $tipo = Utils::normalizarEntrada($_POST['tipo'] ??"");
+if ($_SERVER['REQUEST_METHOD'] === "POST") {
+    try {
+        /*  Normaliza as entradas de dados de formulario para minimizar problemas de segurança e inconsistencia.*/
+        $nome = Utils::normalizarEntrada($_POST["nome"] ?? "");
+        $email = Utils::normalizarEntrada($_POST['email'] ?? "", 'email');
+        $senhaBruta = $_POST['senha'];
+        $tipo = Utils::normalizarEntrada($_POST['tipo'] ?? "");
 
-    /*Aplicar  validaçoes ao campo de formulario*/
-    Validacoes::validarNome($nome);
-    Validacoes::validarEmail($email);
-    Validacoes::validarSenha($senhaBruta);
-    Validacoes::validarTipo($tipo);
+        /*Aplicar  validaçoes ao campo de formulario*/
+        Validacoes::validarNome($nome);
+        Validacoes::validarEmail($email);
+        Validacoes::validarSenha($senhaBruta);
+        Validacoes::validarTipo($tipo);
 
-    /*Se todas as validaçoes passarem:*/  
-    //Codificar senha
-    $senha = Utils::codificarSenha($senhaBruta);
+        /*Se todas as validaçoes passarem:*/
+        //Codificar senha
+        $senha = Utils::codificarSenha($senhaBruta);
 
-    //Converter a string do tipo usuario(vindo do formulario)para o ENUM
-    $tipoEnum = TipoUsuario::from($tipo);
+        //Converter a string do tipo usuario(vindo do formulario)para o ENUM
+        $tipoEnum = TipoUsuario::from($tipo);
 
-    //Criar um objeto Usuarios com os dados normalizados e validados
-    $usuario = new Usuario ($nome,$email,$senha,$tipoEnum);
+        //Criar um objeto Usuarios com os dados normalizados e validados
+        $usuario = new Usuario($nome, $email, $senha, $tipoEnum);
 
-    //Criar um serviço para usuario
-    $usuarioServiço = new UsuarioServico();
+        //Criar um serviço para usuario
+        $usuarioServico = new UsuarioServico();
 
-    //Inserir usuario atraves de serviço
-    $usuarioServico->inserir($usuario);
+        //Inserir usuario atraves de serviço
+        $usuarioServico->inserir($usuario);
 
-    //Redirecionar para a pagina usuarios.php
-    header("location:usuarios.php");
-    exit;
- } catch (InvalidArgumentException $e) {
-    //Primeiro catch :para erros de validação
-    //Exemplos:nome invalido, email invalido, senha inadequada etc.
-    $mensagemErro = $e->getMessage();
- }catch (Throwable $e){
-    //segundo  catch: para exceçoes  e erros inesperados.
-    //registramos no log
-    Utils::registrarLog($e);
+        //Redirecionar para a pagina usuarios.php
+        header("location:usuarios.php");
+        exit;
+    } catch (InvalidArgumentException $e) {
+        //Primeiro catch :para erros de validação
+        //Exemplos:nome invalido, email invalido, senha inadequada etc.
+        $mensagemErro = $e->getMessage();
+    } catch (Throwable $e) {
+        //segundo  catch: para exceçoes  e erros inesperados.
+        //registramos no log
+        Utils::registrarLog($e);
 
-    //definimos uma mensagem generica ao usuario
-    $mensagemErro = "Não foi possivel cadastrar o usuario . Tente novamente.";
- }
+        //definimos uma mensagem generica ao usuario
+        $mensagemErro = "Não foi possivel cadastrar o usuario . Tente novamente.";
+    }
 }
 
 
@@ -68,14 +68,21 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php'; ?>
 <div class="row">
     <article class="col-12 bg-white rounded shadow my-1 py-4">
         <h2 class="text-center">Inserir novo usuário</h2>
+
+        <?php if ($mensagemErro !== ""): ?>
+            <div class="alert alert-danger text-center">
+                <?= Utils::escaparHtml($mensagemErro) ?>
+            </div>
+        <?php endif; ?>
+        <!--Aplicamos o value com valores dinamicos para garantir q os dados ja digitados previamente, não sejam removidos dos campos no caso de uma falha de validação.  -->
         <form class="mx-auto w-75" action="" method="post" id="form-inserir" name="form-inserir">
             <div class="mb-3">
                 <label class="form-label" for="nome">Nome:</label>
-                <input class="form-control" type="text" id="nome" name="nome" value="Nome de exemplo">
+                <input class="form-control" type="text" id="nome" name="nome" value="<?= Utils::escaparHtml($nome) ?>">
             </div>
             <div class="mb-3">
                 <label class="form-label" for="email">E-mail:</label>
-                <input class="form-control" type="email" id="email" name="email" value="pessoa@exemplo.com">
+                <input class="form-control" type="email" id="email" name="email" value="<?= Utils::escaparHtml($email) ?>">
             </div>
             <div class="mb-3">
                 <label class="form-label" for="senha">Senha:</label>

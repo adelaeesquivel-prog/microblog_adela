@@ -1,0 +1,5 @@
+[2026-11-04 10:42:21]
+Arquivo: C:\backend\microblog_adela\admin\usuario-insere.php
+Linha: 45
+Mensagem: Call to a member function inserir() on null
+
