@@ -5,7 +5,9 @@ use Microblog\Enums\TipoUsuario;
 
 final class Usuario
 {
-    private int $id;
+    
+    //private int | null $id;
+    private ?int $id;
     private string $nome;
     private string $email;
     private string $senha;
@@ -16,7 +18,7 @@ final class Usuario
         string $email,
         string $senha,
         TipoUsuario $tipo = TipoUsuario::EDITOR,
-        int $id
+        ?int $id = null //parametro condicional com valor padrao
     ) {
         $this->nome = $nome;
         $this->email = $email;
@@ -31,7 +33,7 @@ final class Usuario
         return $this->tipo;
     }
 
-    public function getId(): ?int
+    public function getId(): ?int //pode retornar int ou null
     {
         return $this->id;
     }
