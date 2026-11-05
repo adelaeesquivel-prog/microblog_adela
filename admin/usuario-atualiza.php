@@ -18,30 +18,30 @@ $id = Utils::normalizarEntrada($_GET['id'] ?? null, 'inteiro');
 //Verificção do valor do id(se for invalido vai redireccionar para index)
 Utils::verificarId($id);
 
-try{
+try {
     $usuarioServico = new UsuarioServico();
-    $dadosUsuario =$usuarioServico->buscarPorId($id);
-}catch(Throwable $e){
+    $dadosUsuario = $usuarioServico->buscarPorId($id);
+} catch (Throwable $e) {
     Utils::registrarLog($e);
     $mensagemErro = "Não foi possivel carregar  os dados do usuário";
 }
 
 //Utils::dump($dadosUsuario);
 //se a consulta retornar null e não tiver, apresentamos uma mensagem avisando  que nada foi encontrado
-if($dadosUsuario === null && $mensagemErro ===""){
+if ($dadosUsuario === null && $mensagemErro === "") {
     Utils::alertaErro("Usuário não encontrado!");
 }
 
 //Inicializa variaveis para armazenar os valores do formulario, usando os dados do usuario (se disponiveis)
-$nome = $dadosUsuario['nome']??"";
-$email = $dadosUsuario['email']??"";
-$tipo = $dadosUsuario['tipo']??"";
+$nome = $dadosUsuario['nome'] ?? "";
+$email = $dadosUsuario['email'] ?? "";
+$tipo = $dadosUsuario['tipo'] ?? "";
 
-if($_SERVER["REQUEST_METHOD"] === "POST"){
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         //Captura e normaliza os dados do formulario
         $nome = Utils::normalizarEntrada($_POST['nome'] ?? "");
-        $email= Utils::normalizarEntrada($_POST['email'] ?? "", 'email');
+        $email = Utils::normalizarEntrada($_POST['email'] ?? "", 'email');
         $tipo = Utils::normalizarEntrada($_POST['tipo'] ?? "");
 
         //Valida os dados e associa o tipo á enumeração
@@ -53,33 +53,31 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
         //Capturando literalmentre a senha como foi digitada
         $senhaBruta = $_POST['senha'] ?? '';
 
-         /*Se a senha não foi preenchida, mantenha a senha atual.*/  
-         /*Se o campo da senha for preenchido, verifica se é a mesma senha.*/   
-         /*Se for a mesma , não faz nada. Se for uma nova senha, codifica (faz o hash)*/ 
+        /*Se a senha não foi preenchida, mantenha a senha atual.*/
+        /*Se o campo da senha for preenchido, verifica se é a mesma senha.*/
+        /*Se for a mesma , não faz nada. Se for uma nova senha, codifica (faz o hash)*/
 
-        if ($senhaBruta === ""){
-        $senha = $dadosUsuario['senha'];
-        }else{
-        Validacoes::validarSenha($senhaBruta);
-        $senha = Utils::verificarSenha($senhaBruta, $dadosUsuario['senha']);
+        if ($senhaBruta === "") {
+            $senha = $dadosUsuario['senha'];
+        } else {
+            Validacoes::validarSenha($senhaBruta);
+            $senha = Utils::verificarSenha($senhaBruta, $dadosUsuario['senha']);
         }
-        
+
         //Criando um objeto com os dados so usuario visando as atualizaçoes do banco
-        $usuario = new Usuario ($nome,$email,$senha,$tipoEnum,$id);
+        $usuario = new Usuario($nome, $email, $senha, $tipoEnum, $id);
 
         //Chamamos o serviço responsavel para atualizar o usuario
         $usuarioServico->atualizar($usuario);
 
         //Se tudo deu certo, redirecionamos:
-        header("localhost:usuariod.php");
+        header("location:usuarios.php");
         exit;
-
     } catch (InvalidArgumentException $e) { //se validaçoes falharem
-    $mensagemErro = $e->getMessage();
-    } catch(Throwable $e){  //se qualquer outro erro/exceção acontecer
-      Utils::registrarLog($e);
-      $mensagemErro = "Não foi possivel atualizae usuario .Tente novamente";
-
+        $mensagemErro = $e->getMessage();
+    } catch (Throwable $e) {  //se qualquer outro erro/exceção acontecer
+        Utils::registrarLog($e);
+        $mensagemErro = "Não foi possivel atualizae usuario .Tente novamente";
     }
 }
 
@@ -106,9 +104,9 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php'; ?>
                 <label class="form-label" for="tipo">Tipo:</label>
                 <select class="form-select" name="tipo" id="tipo">
 
-                    <option value="editor"  <?php  if($tipo === 'editor') echo 'selected' ?>>Editor</option>
+                    <option value="editor" <?php if ($tipo === 'editor') echo 'selected' ?>>Editor</option>
 
-                    <option value="admin" <?php if($tipo === 'admin') echo 'selected' ?>>Administrador</option>
+                    <option value="admin" <?php if ($tipo === 'admin') echo 'selected' ?>>Administrador</option>
                 </select>
             </div>
             <button class="btn btn-primary" name="atualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
