@@ -3,6 +3,7 @@
 use Microblog\Helpers\Utils;
 use Microblog\Models\Categoria;
 use Microblog\Services\CategoriaServico;
+use Microblog\Helpers\Validacoes;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -12,9 +13,7 @@ $nome = "";
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     try {
         $nome = Utils::normalizarEntrada($_POST["nome"] ?? "");
-        if ($nome === "") {
-            throw new InvalidArgumentException("Informe o nome da categoria.");
-        }
+        Validacoes::validarNome($nome);
         $categoria = new Categoria($nome);
         $categoriaServico = new CategoriaServico();
         $categoriaServico->inserir($categoria);
