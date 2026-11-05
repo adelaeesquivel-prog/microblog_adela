@@ -3,6 +3,7 @@
 use Microblog\Enums\TipoUsuario;
 use Microblog\Helpers\Utils;
 use Microblog\Helpers\Validacoes;
+use Microblog\Models\Usuario;
 use Microblog\Services\UsuarioServico;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -49,9 +50,35 @@ if($_SERVER["REQUEST_METHOD"] === "POST"){
         Validacoes::validarTipo($tipo);
         $tipoEnum = TipoUsuario::from($tipo);
 
-    } catch (InvalidArgumentException $e) {
+        //Capturando literalmentre a senha como foi digitada
+        $senhaBruta = $_POST['senha'] ?? '';
+
+         /*Se a senha não foi preenchida, mantenha a senha atual.*/  
+         /*Se o campo da senha for preenchido, verifica se é a mesma senha.*/   
+         /*Se for a mesma , não faz nada. Se for uma nova senha, codifica (faz o hash)*/ 
+
+        if ($senhaBruta === ""){
+        $senha = $dadosUsuario['senha'];
+        }else{
+        Validacoes::validarSenha($senhaBruta);
+        $senha = Utils::verificarSenha($senhaBruta, $dadosUsuario['senha']);
+        }
         
-    } catch(Throwable $e){
+        //Criando um objeto com os dados so usuario visando as atualizaçoes do banco
+        $usuario = new Usuario ($nome,$email,$senha,$tipoEnum,$id);
+
+        //Chamamos o serviço responsavel para atualizar o usuario
+        $usuarioServico->atualizar($usuario);
+
+        //Se tudo deu certo, redirecionamos:
+        header("localhost:usuariod.php");
+        exit;
+
+    } catch (InvalidArgumentException $e) { //se validaçoes falharem
+    $mensagemErro = $e->getMessage();
+    } catch(Throwable $e){  //se qualquer outro erro/exceção acontecer
+      Utils::registrarLog($e);
+      $mensagemErro = "Não foi possivel atualizae usuario .Tente novamente";
 
     }
 }

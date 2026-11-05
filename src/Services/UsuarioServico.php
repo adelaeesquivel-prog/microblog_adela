@@ -82,7 +82,7 @@ final class UsuarioServico
     public function atualizar(Usuario $usuario):void
     {
         $sql = "UPDATE usuarios 
-                SET nome = :nome, email = :email ,senha = :senha,tipo = :tipo
+                SET nome = :nome, email = :email ,senha = :senha, tipo = :tipo
                 WHERE id = :id";
 
         try{
