@@ -34,7 +34,8 @@ require_once __DIR__ . '/includes/cabecalho.php'; ?>
         <h2 class="text-center fw-light">Acesso à área administrativa</h2>
 
         <form action="" method="post" id="form-login" class="mx-auto w-50">
-
+            
+        <!--  se existir alguma mensagem na variavel $feedback, mostramos a mensagem para a pessoa -->
         <?php  if(isset($feedback)): ?>
             <p class="my-2 alert alert-warning text-center">
                 <?= Utils::escaparHtml($feedback) ?>
