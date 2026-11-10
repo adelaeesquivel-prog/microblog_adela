@@ -48,15 +48,15 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php';
                     </tr>
                 </thead>
                 <tbody>
-                <?php foreach($listaDeCategorias as $listadecategoria): ?>
+                <?php foreach($listaDeCategorias as $listadeCategoria): ?>
 
                     <tr>
                         <td>
-                            <?=Utils::escaparHtml($listadecategoria['nome']) ?>
+                            <?=Utils::escaparHtml($listadeCategoria['nome']) ?>
                         </td>
                         <td class="text-center">
-                            <a class="btn btn-warning" href="categoria-atualiza.php?id=<?= Utils::escaparHtml($listadecategoria['id']) ?>"><i class="bi bi-pencil"></i> Atualizar</a>
-                            <a class="btn btn-danger excluir" href="categoria-exclui.php?id=1"><i class="bi bi-trash"></i> Excluir</a>
+                            <a class="btn btn-warning" href="categoria-atualiza.php?id=<?= Utils::escaparHtml($listadeCategoria['id']) ?>"><i class="bi bi-pencil"></i> Atualizar</a>
+                            <a class="btn btn-danger excluir" href="categoria-exclui.php?id=<?= Utils::escaparHtml($listadeCategoria['id']) ?>"><i class="bi bi-trash"></i> Excluir</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
