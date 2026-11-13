@@ -1,9 +1,12 @@
 <?php
 namespace Microblog\Services;
 
+use Exception;
 use Microblog\Database\ConexaoBD;
+use Microblog\Helpers\Utils;
 use Microblog\Models\Noticia;
 use PDO;
+use PDOException;
 
 final final class NoticiasServico 
 {
@@ -17,5 +20,21 @@ final final class NoticiasServico
    public function inserir(Noticia $noticia):void
    {
     $sql = "INSERT INT noticias (titulo, texto, resumo, imagem, destaque, usuario_id, categoria_id) VALUES( :titulo, :texto, :resumo, :imagem, :destaque, :usuario_id, :categoria_id)";
+   
+     try {
+            $consulta = $this->conexao->query($sql);
+            $consulta->bindValue(":titulo", $noticia->getTitulo());
+            $consulta->bindValue(":texto", $noticia->getTexto());
+            $consulta->bindValue(":resumo", $noticia->getResumo());
+            $consulta->bindValue(":imagem", $noticia->getImagem());
+            $consulta->bindValue(":destaque", $noticia->getDestaque()->value);
+            $consulta->bindValue(":usuario_id", $noticia->getUsuarioId());
+            $consulta->bindValue(":categoria_id", $noticia->getCategoriaId());
+            $consulta->execute();
+
+        } catch (PDOException $e) {
+           Utils::registrarLog($e);
+           throw new Exception("Erro ao inserir noticia");
+        }
    }
 }

@@ -1,4 +1,22 @@
-<?php require_once __DIR__ . '/../includes/cabecalho-admin.php'; ?>
+<?php
+
+use Microblog\Enums\Destaque;
+
+require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../includes/cabecalho-admin.php'; 
+
+//Capturando o id do usuario logado ao qual a noticia q sera inserida pertencera
+$idUsuario = $_SESSION['id'];
+
+$mensagemErro = '';
+$listaDeCategorias = [];
+$titulo= '';
+$texto = '';
+$resumo = '';
+$destaque = Destaque::NAO->value;
+$categoria= '';
+$CategoriasCarregadas = false; 
+?>
 
 <div class="row">
     <article class="col-12 bg-white rounded shadow my-1 py-4">
