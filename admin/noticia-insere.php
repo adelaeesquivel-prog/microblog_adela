@@ -1,6 +1,8 @@
 <?php
 
 use Microblog\Enums\Destaque;
+use Microblog\Helpers\Utils;
+use Microblog\Services\CategoriaServico;
 
 require_once __DIR__.'/../vendor/autoload.php';
 require_once __DIR__ . '/../includes/cabecalho-admin.php'; 
@@ -15,12 +17,32 @@ $texto = '';
 $resumo = '';
 $destaque = Destaque::NAO->value;
 $categoria= '';
-$CategoriasCarregadas = false; 
+$CategoriasCarregadas = false;
+
+//Carregamento das categorias
+try{
+    $categoriaServico = new CategoriaServico();
+    $listaDeCategorias = $categoriaServico->listarTodos();
+    $CategoriasCarregadas = true; //flag/sinalizaçãode que deu tudo certo
+} catch(Throwable $e){
+    Utils::registrarLog($e);
+    $mensagemErro = "Não foi possivel carregar as categorias";
+}
+
 ?>
 
 <div class="row">
     <article class="col-12 bg-white rounded shadow my-1 py-4">
         <h2 class="text-center">Inserir nova notícia</h2>
+
+     <?php if($mensagemErro !== ""): ?>
+            <div class="alert alert-danger text-center">
+                <?= Utils::escaparHtml($mensagemErro) ?>
+            </div>
+     <?php endif; ?>
+
+        <?php if($CategoriasCarregadas): ?>
+
         <form class="mx-auto w-75" action="" method="post" id="form-inserir" name="form-inserir" enctype="multipart/form-data">
             <div class="mb-3">
                 <label class="form-label" for="categoria">Categoria:</label>
@@ -55,6 +77,8 @@ $CategoriasCarregadas = false;
             </div>
             <button class="btn btn-primary" id="inserir" name="inserir"><i class="bi bi-save"></i> Inserir</button>
         </form>
+        
+        <?php endif;?>
     </article>
 </div>
 
