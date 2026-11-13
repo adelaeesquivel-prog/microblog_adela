@@ -1,39 +1,26 @@
 # Resumo do histórico da branch
 
-Branch analisada: `03_aula-0511`
-Datas dos commits analisados: 04 e 05/11/2026
-Último commit incluído: `f6d4c7e` — “Corrige redirecionamento ao atualizar usuário”
+Branch analisada: `06_aula-1211`
 
-## Alterações de 04/11
+Período dos commits: 10/11/2026 a 12/11/2026
 
-1. **Estrutura e integração do projeto (`41d366f`, `1796798`)**
-   A branch recebeu a base do Microblog e a configuração de autoload PSR-4 do Composer (`Microblog\\` para `src/`). Classes, enums, helpers e modelos foram ajustados para usar namespaces. Foi criado o `UsuarioServico` e a listagem administrativa passou a consultar os usuários reais do banco.
+## Principais pontos trabalhados
 
-2. **Listagem e tratamento de erros (`4c30f25`, `80c24ee`)**
-   O diretório `vendor/` foi incluído no `.gitignore`, e o `composer.lock` foi registrado. A tela de usuários passou a registrar falhas de carregamento, exibir uma mensagem amigável e, quando a consulta funciona, mostrar a quantidade e os dados escapados dos usuários.
+1. **Ativação do fluxo de autenticação (`007e174`, `4089c21`, `5f49e17`, `92b0850`)**
+   Foi implementada a busca de usuário por e-mail no login, a validação dos dados informados e o fluxo completo de autenticação. Em seguida, foi adicionado o logout do administrador e a lógica de sessão para manter o usuário autenticado e redirecioná-lo em caso de saída.
 
-3. **Cadastro de usuários (`afc745d`, `8fa7d81`, `69932bd`, `7724c2e`, `b4be115`)**
-   O modelo permite criar usuários sem informar um ID, deixando o banco gerá-lo. Foram acrescentadas validações de nome, e-mail, senha e tipo de usuário. O cadastro normaliza os dados, codifica a senha, cria o modelo e delega a inserção ao serviço, que usa consulta preparada. Falhas de validação são apresentadas no formulário; erros inesperados são registrados e recebem uma mensagem genérica. Os valores de nome, e-mail e tipo são preservados após falha.
+2. **Proteção por sessão e controle de acesso (`703c860`, `81fe9e4`, `834fdc0`, `3e6d1b6`, `90add18`, `2b4f842`, `e3b7c54`, `4ab3a7c`)**
+   A classe `ControleDeAcesso` foi ampliada para iniciar e encerrar a sessão, exigir login, verificar o tipo do usuário e controlar o acesso às páginas administrativas. O cabeçalho administrativo passou a bloquear usuários sem autenticação, e as telas de gerenciamento passaram a exigir perfil de administrador. Também foi incluída a verificação do tipo de conta na sessão e a restrição dos links administrativos para quem não tem permissão.
 
-4. **Busca e preenchimento para edição (`93bcad1`, `fec296a`, `b596260`)**
-   O serviço ganhou `buscarPorId()`, com consulta preparada e retorno `null` quando não há registro. A tela de edição normaliza e verifica o ID, busca o usuário e preenche nome, e-mail e tipo no formulário. Erros de consulta são registrados e tratados com mensagem amigável.
+3. **Exibição de contexto e feedback do usuário (`3eae4c9`, `f200330`)**
+   As páginas administrativas passaram a exibir detalhes da sessão atual, como nome e tipo de usuário, e o autoload foi carregado antes das verificações de acesso administrativo para garantir que as classes necessárias estejam disponíveis. Isso melhorou o feedback visual e a consistência do fluxo de autenticação.
 
-## Alterações de 05/11
+4. **Gerenciamento de usuários e segurança de exclusão (`65f5568`, `3fc6ff7`, `3a339ea`)**
+   Foi adicionado o método de serviço para exclusão de usuários e implementada a operação completa de remoção. A partir daí, também foi bloqueada a exclusão da própria conta para evitar inconsistências de sessão e manutenção do usuário administrador principal.
 
-5. **Serviço de atualização (`f58ef0c`)**
-   `UsuarioServico` ganhou `atualizar(Usuario $usuario)`, que executa um `UPDATE` com parâmetros preparados para nome, e-mail, senha, tipo e ID. Exceções de banco são registradas e convertidas em uma mensagem genérica.
-
-6. **Validação do formulário (`f8a1877`)**
-   A tela de edição passou a normalizar e validar nome, e-mail e tipo antes de criar o objeto `Usuario`. Os erros de validação são exibidos no formulário; erros inesperados são registrados.
-
-7. **Integração da atualização e tratamento da senha (`cdb4a31`)**
-   O envio `POST` passou a chamar o serviço para persistir as alterações. A senha é opcional: se o campo ficar vazio, a senha atual é mantida; se for preenchido, a nova senha é validada e processada antes da atualização.
-
-8. **Correção do redirecionamento (`f6d4c7e`)**
-   Após a atualização bem-sucedida, o usuário é redirecionado para `usuarios.php`, e a execução é encerrada para evitar que a página continue sendo renderizada.
+5. **Atualização de perfil do usuário (`0ee4efd`)**
+   O painel administrativo recebeu a funcionalidade de atualizar os dados do próprio perfil, permitindo ao usuário alterar informações cadastrais e manter a experiência consistente com o restante do sistema. A operação foi integrada ao fluxo de sessão e à área administrativa.
 
 ## Estado resultante
 
-O fluxo administrativo de usuários cobre listagem, cadastro, busca por ID, preenchimento do formulário de edição e persistência das alterações. A edição valida os dados recebidos, mantém a senha existente quando nenhuma nova senha é informada e redireciona à listagem após sucesso. Falhas inesperadas são registradas e apresentadas com mensagem genérica.
-
-Os commits analisados são `41d366f`, `1796798`, `4c30f25`, `80c24ee`, `afc745d`, `8fa7d81`, `69932bd`, `7724c2e`, `b4be115`, `93bcad1`, `fec296a`, `b596260`, `f58ef0c`, `f8a1877`, `cdb4a31` e `f6d4c7e`.
+A branch inclui um fluxo de autenticação funcional com busca por e-mail, validação de campos, login, logout e controle de sessão. O acesso às áreas administrativas passou a depender do tipo de usuário e da presença de dados de sessão válidos, com bloqueios para visitantes e usuários sem permissão. Também houve melhorias na experiência do painel, como a exibição do contexto da sessão, restrição de links e proteção contra a exclusão do próprio usuário. A área de administração está pronta para operar com autenticação e permissões por perfil, além de permitir atualização do perfil do usuário logado.

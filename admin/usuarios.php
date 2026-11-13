@@ -1,9 +1,12 @@
 <?php
 
+use Microblog\Auth\ControleDeAcesso;
 use Microblog\Helpers\Utils;
 use Microblog\Services\UsuarioServico;
 
 require_once __DIR__ . "/../vendor/autoload.php";
+
+ControleDeAcesso::exigirAdmin();
 
 $mensagemErro = "";
 $listaDeUsuarios = [];
@@ -12,12 +15,12 @@ try {
     $usuarioServico = new UsuarioServico();
     $listaDeUsuarios = $usuarioServico->listarTodos();
 } catch(Throwable $e){
-    //Usamos throwable  para capturar tanto  situação de exeption quanto de error
+    // Usamos Throwable para capturar tanto situações de Exception quanto de Error
     
-    //Registramos o erro no log  para analise de programador.
+    // Registramos o erro no log para análise do programador
     Utils::registrarLog($e);
 
-   //Exibimos uma mensagem generica para exibir no Front-end
+    // Definimos uma mensagem genérica para exibir no Front-End
     $mensagemErro = "Não foi possível carregar a lista de usuários";
 }
 

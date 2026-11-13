@@ -17,27 +17,18 @@ Voltada aos leitores do portal:
 - **Acesso (`login.php`):** formulário de autenticação para entrar no painel administrativo.
 
 ### 2. Área administrativa (`admin/`)
-Reúne as telas de gerenciamento de notícias, categorias, usuários e perfil. O projeto também define os tipos de usuário **editor** e **administrador**; o controle completo de permissões por tipo ainda está em desenvolvimento.
+Restrita a usuários autenticados, com permissões diferentes conforme o tipo de usuário:
+- **Editor:** pode gerenciar as **próprias notícias**, gerenciar **categorias** e atualizar os dados em **Meu perfil**.
+- **Administrador:** além das permissões de editor, pode gerenciar **todas as notícias** e gerenciar **usuários** (inserir, atualizar e excluir contas).
 
 ---
 
-## Funcionalidades implementadas
+## Ponto de partida para as aulas
 
-- Páginas públicas para listar notícias, consultar uma notícia, filtrar por categoria e pesquisar.
-- Painel administrativo com operações de cadastro, consulta, atualização e exclusão para categorias e usuários, além das telas de gerenciamento de notícias.
-- Acesso ao banco de dados MySQL/MariaDB por PDO, com modelos e serviços organizados em `src/`.
-- Autoload PSR-4 configurado pelo Composer, validações e utilitários para normalizar entradas, escapar conteúdo HTML e registrar erros.
-
-## Atualizações recentes — 10/11/2026
-
-- Corrigidos os IDs usados nos links de atualização e exclusão de categorias.
-- Implementadas as exclusões de categorias e usuários com consultas preparadas, validação do ID recebido e registro de erros.
-- Criado o controle de acesso por sessão. O cabeçalho administrativo exige que exista uma sessão autenticada antes de exibir o painel.
-- Atualizado o formulário de acesso para validar o preenchimento de e-mail e senha e exibir mensagens para campos obrigatórios, credenciais inválidas, acesso proibido, erros e saída do sistema.
-
-### Estado da autenticação
-
-O controle de sessão já oferece métodos para registrar e encerrar a sessão. A autenticação ainda não está integrada por completo: o formulário de login valida campos vazios, mas ainda não verifica as credenciais no banco; a tela de saída também permanece como etapa em desenvolvimento. O bloqueio atual do painel verifica se há uma sessão iniciada, sem aplicar ainda permissões específicas por tipo de usuário.
+Na versão inicial do projeto:
+- As páginas públicas e administrativas já contam com toda a estrutura HTML/Bootstrap e exibem **dados estáticos provisórios**.
+- A pasta `src/` traz classes iniciais de conexão com o banco (`ConexaoBD`), utilitários e validações (`Utils` e `Validacoes`), enumerações (`Destaque` e `TipoUsuario`) e modelos (`Categoria`, `Noticia` e `Usuario`).
+- Ao longo das aulas, construiremos e ajustaremos os **namespaces**, o **autoload com Composer**, os **modelos**, as **classes de serviço (CRUD com PDO)**, o **controle de acesso com sessões** e a integração completa das páginas e da busca dinâmica.
 
 ---
 

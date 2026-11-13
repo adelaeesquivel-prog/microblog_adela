@@ -39,78 +39,95 @@ final class UsuarioServico
         }
     }
 
-    public function inserir(Usuario  $usuario):void
+    public function inserir(Usuario $usuario): void
     {
-       $sql= " INSERT INTO usuarios (nome, email,senha,tipo)   
-               VALUES(:nome, :email,:senha, :tipo)";
-        try{
+        $sql = "INSERT INTO usuarios (nome, email, senha, tipo)
+                VALUES(:nome, :email, :senha, :tipo)";
+
+        try {
             $consulta = $this->conexao->prepare($sql);
 
-            /*Repare abaixo o acesso aos dados do objeto $usuario  atraves dos seus getters. No caso de GetTipousuario, como se trata de uma Enum, acessamosseu valor usando  ->value*/ 
+            /* Repare abaixo o acesso aos dados do objeto $usuario
+            através de seus getters. No caso do getTipoUsuario, como
+            se trata de uma ENUM, acessamos seu valor usando -> value */
+
             $consulta->bindValue(":nome", $usuario->getNome());
             $consulta->bindValue(":email", $usuario->getEmail());
             $consulta->bindValue(":senha", $usuario->getSenha());
             $consulta->bindValue(":tipo", $usuario->getTipoUsuario()->value);
 
             $consulta->execute();
-         } catch(PDOException $e) {
+        } catch (PDOException $e) {
             Utils::registrarLog($e);
-            throw new Exception("Erro ao inserir usuario");
-         }
+            throw new Exception("Erro ao inserir usuário");
+        }
     }
 
     public function buscarPorId(int $id): ?array
     {
-        $sql = "SELECT id, nome, email, senha, tipo FROM  usuarios WHERE id = :id";
+        $sql = "SELECT id, nome, email, senha, tipo FROM usuarios WHERE id = :id";
 
-        try{
+        try {
             $consulta = $this->conexao->prepare($sql);
             $consulta->bindValue(":id", $id);
             $consulta->execute();
-           
-            //Ternario conciso/abreviado(se fetch for TRUE, retorna ele mesmo; senão null)
+
+            // Ternário conciso/abreviado (se fetch for TRUE, retorna ele mesmo; senão null)
             return $consulta->fetch() ?: null;
-
-            //usando ternario tradicional(faz a mesma coisa)
-            //return $consulta->fetch() ? $consulta->fetch(): null;
-
-        }catch(PDOException $e){
+            
+            // Usando ternário tradicional (faz a mesma coisa)
+            // return $consulta->fetch() ? $consulta->fetch() : null; 
+        } catch (PDOException $e) {
             Utils::registrarLog($e);
-            throw new Exception("Erro ao buscar usuario por ID.");
+            throw new Exception("Erro ao buscar usuário por ID.");
         }
     }
-    public function atualizar(Usuario $usuario):void
+
+    public function atualizar(Usuario $usuario): void
     {
         $sql = "UPDATE usuarios 
-                SET nome = :nome, email = :email ,senha = :senha, tipo = :tipo
-                WHERE id = :id";
+                    SET nome = :nome, email = :email, senha = :senha, tipo = :tipo
+                    WHERE id = :id";
 
-        try{
+        try {
             $consulta = $this->conexao->prepare($sql);
             $consulta->bindValue(":nome", $usuario->getNome());
             $consulta->bindValue(":email", $usuario->getEmail());
             $consulta->bindValue(":senha", $usuario->getSenha());
             $consulta->bindValue(":tipo", $usuario->getTipoUsuario()->value);
-            $consulta->bindValue(":id",$usuario->getId());
+            $consulta->bindValue(":id", $usuario->getId());
             $consulta->execute();
-        }catch(PDOException $e){
+        } catch (PDOException $e) {
             Utils::registrarLog($e);
-            throw new Exception("Erro ao atualizar usuario");
+            throw new Exception("Erro ao atualizar usuário");
         }
     }
-    
+
     public function excluir(int $id):void
     {
         $sql = "DELETE FROM usuarios WHERE id = :id";
-        try{
+        
+        try {
             $consulta = $this->conexao->prepare($sql);
             $consulta->bindValue(":id", $id);
             $consulta->execute();
-
         } catch (PDOException $e) {
             Utils::registrarLog($e);
-            throw new Exception("Erro ao excluir usuarios");
+            throw new Exception("Erro ao excluir usuário");
         }
-        
+    }
+
+    public function buscarPorEmail(string $email): ?array
+    {
+        $sql = "SELECT id, nome, senha, tipo FROM usuarios WHERE email = :email";
+        try {
+            $consulta = $this->conexao->prepare($sql);
+            $consulta->bindValue(":email", $email);
+            $consulta->execute();
+            return $consulta->fetch() ?: null;
+        } catch (PDOException $e) {
+            Utils::registrarLog($e);
+            throw new Exception("Erro ao buscar usuário por e-mail");
+        }
     }
 }

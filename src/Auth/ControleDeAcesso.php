@@ -1,57 +1,59 @@
 <?php
 namespace Microblog\Auth;
 
-/*Sessoes no PHP
-Funcionalidade usada para controlar o acesso para determinadas página e recursos de um site/aplicação.
+use Microblog\Enums\TipoUsuario;
 
-Exemplos: áreas administrativas, painel de controle, área de cliente/aluno   
+/* Sessões no PHP
+Funcionalidade usada para controlar o acesso a determinadas
+páginas e recursos de um site/aplicação.
 
-Nessas áreas, o acesso depende de alguma forma de autenticação, como login e senha, biometria por dois fatores etc. */
+Exemplos: áreas administrativas, painel de controle, área de cliente/aluno.
 
-final  class ControleDeAcesso 
-{    
-    //Impedir a criação de objeto/instancia
-    private function __construct(){}
-    
-    //inicia a sessao se ela ainda não estiver ativa
-    private static function iniciarSessao():void
+Nessas áreas, o acesso depende de alguma forma de autenticação, como login e senha, biometria, por dois fatores etc. */
+
+final class ControleDeAcesso
+{
+    // Impedir a criação de objeto/instância
+    private function __construct() {}
+
+    // Inicia a sessão se ela ainda não estiver ativa
+    private static function iniciarSessao(): void
     {
-        //Se o status da sessao NÃO FOR ativa (ou se a sessao esta inativa)
+        // Se o status da sessão NÃO FOR ativa (ou, se a sessão está inativa)
         if(session_status() !== PHP_SESSION_ACTIVE){
-
-            //Então, iniciamos a sessao
+            // Então, iniciamos a sessão
             session_start();
-         }
+        }
     }
 
-    private static function encerrarSessao(): void
+    private static function encerrarSessao():void
     {
-        $_SESSION = [];  //limpar os dados do usuario na sessão
-        session_destroy();  //destroi/removequalque dado da sessão do navegador
+        $_SESSION = []; // limpar os dados do usuário armazenados na sessão
+        session_destroy(); // destrói/remove quaisquer dados da sessão no navegador
     }
 
-    public  static function exigirLogin():void
+
+    public static function exigirLogin(): void
     {
         self::iniciarSessao();
 
-        //Se não existir na sessão uma variavel chamada id,
-        //signiifica que o usuario não esta logado
+        // Se NÃO EXISTIR na sessão uma variável chamada id,
+        // significa que o usuário NÃO ESTÁ logado
         if(!isset($_SESSION['id'])){
-
-            //encerrar a sessão(ainda programar)
+            // encerrar a sessão
             self::encerrarSessao();
 
-          //redirecionar para a pagina login
+            // redirecionar para a página de login
             header("location:../login.php?acesso_proibido");
             exit;
         }
     }
 
-    public static function login(int $id, string $nome, string  $tipo):void
+    public static function login(int $id, string $nome, string $tipo): void
     {
         self::iniciarSessao();
 
-        //Criando as variaveis de sessão com alguns dados de quem esta logado
+        // Cria as variáveis de sessão com alguns dados de quem está logando
         $_SESSION['id'] = $id;
         $_SESSION['nome'] = $nome;
         $_SESSION['tipo'] = $tipo;
@@ -59,10 +61,32 @@ final  class ControleDeAcesso
 
     public static function logout(): void
     {
-        self:: iniciarSessao();
+        self::iniciarSessao();
         self::encerrarSessao();
-        header("Location:../login-php?logout");
+        header("location:../login.php?logout");
         exit;
     }
 
+    // Verifica se o usuário logado é do tipo admin
+    public static function usuarioEhAdmin(): bool 
+    {
+        self::iniciarSessao();
+        
+        // Se variável de sessão 'tipo' existe E o valor dela é 'admin'
+        // então significa que o usuário logado é um administrador
+        return isset($_SESSION['tipo']) && $_SESSION['tipo'] === TipoUsuario::ADMIN->value;
+    }
+
+    public static function exigirAdmin(): void
+    {
+        // Garanta que está logado
+        self::exigirLogin();
+        
+        // Verifica se NÃO É um admin
+        if(!self::usuarioEhAdmin()){
+            // Não sendo, manda pra página nao-autorizado
+            header("location:nao-autorizado.php");
+            exit;
+        }
+    }
 }
