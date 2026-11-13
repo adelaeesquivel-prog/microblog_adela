@@ -47,8 +47,11 @@ try{
             <div class="mb-3">
                 <label class="form-label" for="categoria">Categoria:</label>
                 <select class="form-select" name="categoria" id="categoria">
-                    <option value="1" selected>Desenvolvimento</option>
-                    <option value="2">Tecnologia</option>
+                    <option value=""></option>
+
+                    <?php foreach($listaDeCategorias as $itemCategoria):?>
+                        <option value="<?= Utils::escaparHtml($itemCategoria['id']) ?>"><?= Utils::escaparHtml(($itemCategoria['nome'])) ?></option>
+                        <?php endforeach; ?>
                 </select>
             </div>
             <div class="mb-3">
@@ -77,7 +80,7 @@ try{
             </div>
             <button class="btn btn-primary" id="inserir" name="inserir"><i class="bi bi-save"></i> Inserir</button>
         </form>
-        
+
         <?php endif;?>
     </article>
 </div>
