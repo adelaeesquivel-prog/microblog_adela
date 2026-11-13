@@ -8,7 +8,7 @@ use Microblog\Models\Noticia;
 use PDO;
 use PDOException;
 
-final final class NoticiasServico 
+ final class NoticiasServico 
 {
    private PDO $conexao; 
 
@@ -19,10 +19,14 @@ final final class NoticiasServico
 
    public function inserir(Noticia $noticia):void
    {
-    $sql = "INSERT INT noticias (titulo, texto, resumo, imagem, destaque, usuario_id, categoria_id) VALUES( :titulo, :texto, :resumo, :imagem, :destaque, :usuario_id, :categoria_id)";
+    $sql = "INSERT INTO noticias (
+        titulo, texto, resumo, imagem, destaque, usuario_id, categoria_id
+    ) VALUES(
+        :titulo, :texto, :resumo, :imagem, :destaque, :usuario_id, :categoria_id
+     )";
    
      try {
-            $consulta = $this->conexao->query($sql);
+            $consulta = $this->conexao->prepare($sql);
             $consulta->bindValue(":titulo", $noticia->getTitulo());
             $consulta->bindValue(":texto", $noticia->getTexto());
             $consulta->bindValue(":resumo", $noticia->getResumo());
