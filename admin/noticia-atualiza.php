@@ -3,6 +3,8 @@
 use Microblog\Auth\ControleDeAcesso;
 use Microblog\Enums\Destaque;
 use Microblog\Helpers\Utils;
+use Microblog\Helpers\Validacoes;
+use Microblog\Models\Noticia;
 use Microblog\Services\CategoriaServico;
 use Microblog\Services\NoticiasServico;
 
@@ -13,8 +15,9 @@ ControleDeAcesso::exigirLogin();
 $mensagemErro = "";
 $listaDeCategorias = [];
 $dadosNoticia = null;
+$noticiasServico = null;
 
-$noticiaId = Utils::normalizarEntrada($_GET['id'] ?? null, 'inteiro');
+$noticiaId = (int) Utils::normalizarEntrada($_GET['id'] ?? null, 'inteiro');
 Utils::verificarId($noticiaId);
 
 try {
@@ -36,6 +39,65 @@ try {
     $mensagemErro = "Não foi possível carregar os dados da notícia.";
 }
 
+$titulo = $dadosNoticia['titulo'] ?? '';
+$texto = $dadosNoticia['texto'] ?? '';
+$resumo = $dadosNoticia['resumo'] ?? '';
+$destaque = $dadosNoticia['destaque'] ?? Destaque::NAO->value;
+$categoria = $dadosNoticia['categoria_id'] ?? '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dadosNoticia !== null) {
+    try {
+        $titulo = Utils::normalizarEntrada($_POST['titulo'] ?? '');
+        $texto = Utils::normalizarEntrada($_POST['texto'] ?? '');
+        $resumo = Utils::normalizarEntrada($_POST['resumo'] ?? '');
+        $destaque = Utils::normalizarEntrada($_POST['destaque'] ?? '');
+        $categoria = (int) Utils::normalizarEntrada($_POST['categoria'] ?? '', 'inteiro');
+
+        Validacoes::validarCategoria($categoria);
+        Validacoes::validarTitulo($titulo);
+        Validacoes::validarTexto($texto);
+        Validacoes::validarResumo($resumo);
+        Validacoes::validarDestaque($destaque);
+
+        $destaqueEnum = Destaque::from($destaque);
+        $imagem = $dadosNoticia['imagem'];
+        $arquivoImagem = $_FILES['imagem'] ?? null;
+
+        if (
+            $arquivoImagem !== null &&
+            (!is_array($arquivoImagem) || ($arquivoImagem['error'] ?? null) !== UPLOAD_ERR_NO_FILE)
+        ) {
+            $imagem = Utils::upload($arquivoImagem);
+        }
+
+        $autorId = (int) ($dadosNoticia['usuario_id'] ?? $_SESSION['id']);
+        $noticia = new Noticia(
+            $titulo,
+            $texto,
+            $resumo,
+            $imagem,
+            $destaqueEnum,
+            $autorId,
+            $categoria,
+            $noticiaId
+        );
+
+        $noticiasServico->atualizar(
+            $noticia,
+            (int) $_SESSION['id'],
+            (string) $_SESSION['tipo']
+        );
+
+        header("location:noticias.php");
+        exit;
+    } catch (InvalidArgumentException $e) {
+        $mensagemErro = $e->getMessage();
+    } catch (Throwable $e) {
+        Utils::registrarLog($e);
+        $mensagemErro = "Não foi possível atualizar a notícia. Tente novamente.";
+    }
+}
+
 require_once __DIR__ . '/../includes/cabecalho-admin.php';
 ?>
 
@@ -49,7 +111,7 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php';
             </div>
         <?php endif; ?>
 
-        <?php if ($dadosNoticia !== null && $mensagemErro === ""): ?>
+        <?php if ($dadosNoticia !== null): ?>
             <p class="text-center">
                 Publicada em <?= Utils::escaparHtml(Utils::formataData($dadosNoticia['data'])) ?>
                 por <?= Utils::escaparHtml($dadosNoticia['autor'] ?? 'Autor não informado') ?>
@@ -59,11 +121,11 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php';
                 <div class="mb-3">
                     <label class="form-label" for="categoria">Categoria:</label>
                     <select class="form-select" name="categoria" id="categoria">
-                        <option value="" <?= $dadosNoticia['categoria_id'] === null ? 'selected' : '' ?>></option>
+                        <option value="" <?= $categoria === '' || $categoria === 0 ? 'selected' : '' ?>></option>
                         <?php foreach ($listaDeCategorias as $itemCategoria): ?>
                             <option
                                 value="<?= Utils::escaparHtml($itemCategoria['id']) ?>"
-                                <?= (int) $itemCategoria['id'] === (int) $dadosNoticia['categoria_id'] ? 'selected' : '' ?>
+                                <?= (int) $itemCategoria['id'] === (int) $categoria ? 'selected' : '' ?>
                             >
                                 <?= Utils::escaparHtml($itemCategoria['nome']) ?>
                             </option>
@@ -73,7 +135,7 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php';
                 <div class="mb-3">
                     <label class="form-label" for="titulo">Título:</label>
                     <input
-                        value="<?= Utils::escaparHtml($dadosNoticia['titulo']) ?>"
+                        value="<?= Utils::escaparHtml($titulo) ?>"
                         class="form-control"
                         type="text"
                         id="titulo"
@@ -82,12 +144,12 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php';
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="texto">Texto:</label>
-                    <textarea class="form-control" name="texto" id="texto" cols="50" rows="6"><?= Utils::escaparHtml($dadosNoticia['texto']) ?></textarea>
+                    <textarea class="form-control" name="texto" id="texto" cols="50" rows="6"><?= Utils::escaparHtml($texto) ?></textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="resumo">Resumo (máximo de 300 caracteres):</label>
                     <span id="maximo" class="badge bg-danger">0</span>
-                    <textarea class="form-control" name="resumo" id="resumo" cols="50" rows="2" maxlength="300"><?= Utils::escaparHtml($dadosNoticia['resumo']) ?></textarea>
+                    <textarea class="form-control" name="resumo" id="resumo" cols="50" rows="2" maxlength="300"><?= Utils::escaparHtml($resumo) ?></textarea>
                 </div>
                 <div class="mb-3">
                     <div class="row">
@@ -124,7 +186,7 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php';
                         id="option1"
                         autocomplete="off"
                         value="<?= Destaque::NAO->value ?>"
-                        <?= $dadosNoticia['destaque'] === Destaque::NAO->value ? 'checked' : '' ?>
+                        <?= $destaque === Destaque::NAO->value ? 'checked' : '' ?>
                     >
                     <label class="btn btn-outline-danger" for="option1">Não</label>
                     <input
@@ -134,15 +196,17 @@ require_once __DIR__ . '/../includes/cabecalho-admin.php';
                         id="option2"
                         autocomplete="off"
                         value="<?= Destaque::SIM->value ?>"
-                        <?= $dadosNoticia['destaque'] === Destaque::SIM->value ? 'checked' : '' ?>
+                        <?= $destaque === Destaque::SIM->value ? 'checked' : '' ?>
                     >
                     <label class="btn btn-outline-success" for="option2">Sim</label>
                 </div>
-                <button class="btn btn-primary" name="atualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+                <button class="btn btn-primary" type="submit" name="atualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
             </form>
         <?php endif; ?>
     </article>
 </div>
 
-<script src="js/contador.js"></script>
+<?php if ($dadosNoticia !== null): ?>
+    <script src="js/contador.js"></script>
+<?php endif; ?>
 <?php require_once __DIR__ . '/../includes/rodape-admin.php'; ?>

@@ -2,6 +2,7 @@
 namespace Microblog\Services;
 
 use Exception;
+use InvalidArgumentException;
 use Microblog\Database\ConexaoBD;
 use Microblog\Enums\TipoUsuario;
 use Microblog\Helpers\Utils;
@@ -98,6 +99,93 @@ final class NoticiasServico
         } catch (PDOException $e) {
             Utils::registrarLog($e);
             throw new Exception("Erro ao inserir noticia");
+        }
+    }
+
+    public function atualizar(Noticia $noticia, int $usuarioId, string $tipoUsuario): void
+    {
+        $noticiaId = $noticia->getId();
+        if ($noticiaId === null) {
+            throw new InvalidArgumentException("Não é possível atualizar uma notícia sem ID.");
+        }
+
+        $sql = "UPDATE noticias
+                SET titulo = :titulo,
+                    texto = :texto,
+                    resumo = :resumo,
+                    imagem = :imagem,
+                    destaque = :destaque,
+                    categoria_id = :categoria_id
+                WHERE id = :noticia_id";
+
+        if ($tipoUsuario !== TipoUsuario::ADMIN->value) {
+            $sql .= " AND usuario_id = :usuario_id";
+        }
+
+        try {
+            $consulta = $this->conexao->prepare($sql);
+            $consulta->bindValue(":titulo", $noticia->getTitulo());
+            $consulta->bindValue(":texto", $noticia->getTexto());
+            $consulta->bindValue(":resumo", $noticia->getResumo());
+            $consulta->bindValue(":imagem", $noticia->getImagem());
+            $consulta->bindValue(":destaque", $noticia->getDestaque()->value);
+            $consulta->bindValue(":categoria_id", $noticia->getCategoriaId(), PDO::PARAM_INT);
+            $consulta->bindValue(":noticia_id", $noticiaId, PDO::PARAM_INT);
+
+            if ($tipoUsuario !== TipoUsuario::ADMIN->value) {
+                $consulta->bindValue(":usuario_id", $usuarioId, PDO::PARAM_INT);
+            }
+
+            $consulta->execute();
+
+            if ($consulta->rowCount() === 0) {
+                $sqlVerificacao = "SELECT 1 FROM noticias WHERE id = :noticia_id";
+                if ($tipoUsuario !== TipoUsuario::ADMIN->value) {
+                    $sqlVerificacao .= " AND usuario_id = :usuario_id";
+                }
+
+                $verificacao = $this->conexao->prepare($sqlVerificacao);
+                $verificacao->bindValue(":noticia_id", $noticiaId, PDO::PARAM_INT);
+
+                if ($tipoUsuario !== TipoUsuario::ADMIN->value) {
+                    $verificacao->bindValue(":usuario_id", $usuarioId, PDO::PARAM_INT);
+                }
+
+                $verificacao->execute();
+                if ($verificacao->fetchColumn() === false) {
+                    throw new Exception("Notícia não encontrada ou acesso não permitido");
+                }
+            }
+        } catch (PDOException $e) {
+            Utils::registrarLog($e);
+            throw new Exception("Erro ao atualizar notícia");
+        }
+    }
+
+    public function excluir(int $usuarioId, string $tipoUsuario, int $noticiaId): void
+    {
+        $sql = "DELETE FROM noticias WHERE id = :noticia_id";
+
+        if ($tipoUsuario !== TipoUsuario::ADMIN->value) {
+            $sql .= " AND usuario_id = :usuario_id";
+        }
+
+        try {
+            $consulta = $this->conexao->prepare($sql);
+            $consulta->bindValue(":noticia_id", $noticiaId, PDO::PARAM_INT);
+
+            if ($tipoUsuario !== TipoUsuario::ADMIN->value) {
+                $consulta->bindValue(":usuario_id", $usuarioId, PDO::PARAM_INT);
+            }
+
+            $consulta->execute();
+
+            if ($consulta->rowCount() === 0) {
+                throw new Exception("Notícia não encontrada ou acesso não permitido");
+            }
+        } catch (PDOException $e) {
+            Utils::registrarLog($e);
+            throw new Exception("Erro ao excluir notícia");
         }
     }
 }

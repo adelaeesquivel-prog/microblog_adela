@@ -5,7 +5,7 @@ use Microblog\Auth\ControleDeAcesso;
 use Microblog\Helpers\Utils;
 use Microblog\Services\NoticiasServico;
 
-ControleDeAcesso::exigirAdmin();
+ControleDeAcesso::exigirLogin();
 
 $mensagemErro = "";
 $listaDeNoticias = [];
