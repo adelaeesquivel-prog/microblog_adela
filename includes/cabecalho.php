@@ -1,3 +1,20 @@
+<?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Microblog\Helpers\Utils;
+use Microblog\Services\CategoriaServico;
+
+$listaDeCategorias = [];
+$erroAoCarregarCategorias = false;
+
+try {
+  $categoriaServico = new CategoriaServico();
+  $listaDeCategorias = $categoriaServico->listarTodos();
+} catch (Throwable $e) {
+  Utils::registrarLog($e);
+  $erroAoCarregarCategorias = true;
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br" class="h-100">
 
@@ -28,10 +45,13 @@
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categorias</a>
               <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-
-                <li><a class="dropdown-item" href="noticias-por-categoria.php?id=1">Desenvolvimento</a></li>
-                <li><a class="dropdown-item" href="noticias-por-categoria.php?id=2">Tecnologia</a></li>
-                
+                <?php if ($erroAoCarregarCategorias): ?>
+                  <li><span class="dropdown-item-text">Não foi possível carregar as categorias.</span></li>
+                <?php else: ?>
+                <?php foreach ($listaDeCategorias as $categoria): ?>
+                  <li><a class="dropdown-item" href="noticias-por-categoria.php?id=<?= htmlspecialchars((string) $categoria['id'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"><?= htmlspecialchars((string) $categoria['nome'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></a></li>
+                <?php endforeach; ?>
+                <?php endif; ?>
               </ul>
             </li>
             <li class="nav-item"><a class="nav-link" href="admin/index.php"><i class="bi bi-lock-fill"></i> Área administrativa</a></li>

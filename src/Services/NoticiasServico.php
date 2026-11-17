@@ -26,7 +26,7 @@ final class NoticiasServico
         if ($tipoUsuario === TipoUsuario::ADMIN->value) {
             $sql .= ", u.nome AS autor";
             $sql .= " FROM noticias n";
-            $sql .= " INNER JOIN usuarios u ON u.id = n.usuario_id";
+            $sql .= " LEFT JOIN usuarios u ON u.id = n.usuario_id";
             $sql .= " ORDER BY n.data DESC";
         } else {
             $sql .= " FROM noticias n";
@@ -46,6 +46,25 @@ final class NoticiasServico
         } catch (PDOException $e) {
             Utils::registrarLog($e);
             throw new Exception("Erro ao listar notícias");
+        }
+    }
+
+    public function listarPorCategoria(int $categoriaId): array
+    {
+        $sql = "SELECT n.id, n.data, n.titulo, n.resumo, n.texto, n.imagem, u.nome AS autor
+                FROM noticias n
+                LEFT JOIN usuarios u ON u.id = n.usuario_id
+                WHERE n.categoria_id = :categoria_id
+                ORDER BY n.data DESC";
+
+        try {
+            $consulta = $this->conexao->prepare($sql);
+            $consulta->bindValue(":categoria_id", $categoriaId, PDO::PARAM_INT);
+            $consulta->execute();
+            return $consulta->fetchAll();
+        } catch (PDOException $e) {
+            Utils::registrarLog($e);
+            throw new Exception("Erro ao listar notícias por categoria");
         }
     }
 
